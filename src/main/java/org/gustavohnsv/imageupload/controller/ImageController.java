@@ -4,6 +4,8 @@ import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.model.Message;
 import org.gustavohnsv.imageupload.repository.ImageRepository;
 import org.gustavohnsv.imageupload.service.ImageService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +28,29 @@ public class ImageController {
 
     @PostMapping("/image/")
     public ResponseEntity<Message> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            imageService.saveImage(file);
-            return ResponseEntity.status(HttpStatus.OK).body(new Message("success", "Image uploaded successfully"));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Message("error", e.getMessage()));
+        imageService.saveImage(file);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new Message("success", "Image uploaded successfully"));
+    }
+
+    @GetMapping("/image/download/")
+    public ResponseEntity<Object> downloadImage(@RequestParam String id) {
+        Image image = imageService.getImage(id);
+        byte[] imageData = image.getData();
+        String imageContentType = image.getContentType();
+        if (imageData == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new Message("error", "Image not found"));
+        } else {
+             HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getName() + "\"");
+            headers.add(HttpHeaders.CONTENT_TYPE, imageContentType);
+            return ResponseEntity
+                     .status(HttpStatus.OK)
+                     .headers(headers)
+                     .body(new ByteArrayResource(imageData));
         }
     }
 
@@ -38,40 +58,58 @@ public class ImageController {
     public ResponseEntity<Message> deleteImage(@RequestParam String id) {
         Image image = imageService.getImage(id);
         if (image == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message("error", "Image not found"));
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new Message("error", "Image not found"));
         } else {
             imageRepository.delete(image);
-            return ResponseEntity.status(HttpStatus.OK).body(new Message("success", "Image deleted successfully"));
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new Message("success", "Image deleted successfully"));
         }
     }
 
     @GetMapping("/")
     public ResponseEntity<List<Image>> getAllImages() {
-        return ResponseEntity.ok(imageRepository.findAll());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(imageRepository.findAll());
     }
 
     @GetMapping("/image/")
     public ResponseEntity<byte[]> getImage(@RequestParam String id) {
         Image image = imageService.getImage(id);
         if (image == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(null);
         } else {
-            return ResponseEntity.status(HttpStatus.OK).header("Content-Type", image.getContentType()).body(image.getData());
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .header("Content-Type", image.getContentType())
+                    .body(image.getData());
         }
     }
 
     @GetMapping("/image/count/")
     public ResponseEntity<Message> getImageCount() {
-        return ResponseEntity.status(HttpStatus.OK).body(new Message("success", imageRepository.count() + " images found"));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new Message("success", imageRepository.count() + " images found"));
     }
 
     @RequestMapping(value = "/image/", method = RequestMethod.HEAD)
     public ResponseEntity<Void> headImage(@RequestParam String id) {
         Image image = imageService.getImage(id);
         if (image == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
         } else {
-            return ResponseEntity.status(HttpStatus.OK).header("Content-Type", image.getContentType()).build();
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .header("Content-Type", image.getContentType())
+                    .build();
         }
     }
 
