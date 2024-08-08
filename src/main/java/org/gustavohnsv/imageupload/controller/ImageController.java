@@ -44,7 +44,7 @@ public class ImageController {
                     .status(HttpStatus.NOT_FOUND)
                     .body(new Message("error", "Image not found"));
         } else {
-             HttpHeaders headers = new HttpHeaders();
+            HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getName() + "\"");
             headers.add(HttpHeaders.CONTENT_TYPE, imageContentType);
             return ResponseEntity

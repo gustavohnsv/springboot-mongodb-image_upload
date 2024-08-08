@@ -34,6 +34,7 @@
     GET     localhost:8080/csrf-token
     GET     localhost:8080/api/images/
     GET     localhost:8080/api/images/image/?id={id}
+    GET     localhost:8080/api/images/image/download/?id={id}
     GET     localhost:8080/api/images/image/count/
     POST    localhost:8080/api/images/image/
     DELETE  localhost:8080/api/images/image/?id={id}
@@ -72,7 +73,8 @@
     │   │               ├── repository
     │   │               │   └── ImageRepository.java
     │   │               └── service
-    │   │                   └── ImageService.java
+    │   │                   ├── ImageService.java
+    │   │                   └── ResolutionType.java
     │   └── resources
     │       ├── application.properties
     │       ├── static
