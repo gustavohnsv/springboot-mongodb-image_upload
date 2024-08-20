@@ -4,6 +4,7 @@ import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.model.Message;
 import org.gustavohnsv.imageupload.repository.ImageRepository;
 import org.gustavohnsv.imageupload.service.ImageService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -34,23 +34,26 @@ public class ImageController {
                 .body(new Message("success", "Image uploaded successfully"));
     }
 
+    @NotNull
+    private static HttpHeaders getHttpHeadersForDownload(@NotNull Image image) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getName() + "\"");
+        headers.add(HttpHeaders.CONTENT_TYPE, image.getContentType());
+        return headers;
+    }
+
     @GetMapping("/image/download/")
     public ResponseEntity<Object> downloadImage(@RequestParam String id) {
-        Image image = imageService.getImage(id);
-        byte[] imageData = image.getData();
-        String imageContentType = image.getContentType();
-        if (imageData == null) {
+        Image decompressedImage = imageService.retriveImage(id);
+        if (decompressedImage == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(new Message("error", "Image not found"));
         } else {
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getName() + "\"");
-            headers.add(HttpHeaders.CONTENT_TYPE, imageContentType);
             return ResponseEntity
                      .status(HttpStatus.OK)
-                     .headers(headers)
-                     .body(new ByteArrayResource(imageData));
+                     .headers(getHttpHeadersForDownload(decompressedImage))
+                     .body(new ByteArrayResource(decompressedImage.getData()));
         }
     }
 
@@ -78,16 +81,16 @@ public class ImageController {
 
     @GetMapping("/image/")
     public ResponseEntity<byte[]> getImage(@RequestParam String id) {
-        Image image = imageService.getImage(id);
-        if (image == null) {
+        Image decompressedImage = imageService.retriveImage(id);
+        if (decompressedImage == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(null);
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .header("Content-Type", image.getContentType())
-                    .body(image.getData());
+                    .header("Content-Type", decompressedImage.getContentType())
+                    .body(decompressedImage.getData());
         }
     }
 
