@@ -14,9 +14,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Override
-    protected String getDatabaseName() {
-        return "clients";
-    }
+    protected String getDatabaseName() { return "clients"; }
 
     @Override
     public MongoClient mongoClient() {

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link rel="stylesheet" href="/css/styles.css">
+        <title>Image Upload</title>
+    </head>
+    <body>
+    <table class="table" id="image-table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Content Type</th>
+                <th scope="col">Resolution Type</th>
+                <th scope="col">Width</th>
+                <th scope="col">Height</th>
+                <th scope="col">Size</th>
+                <th scope="col">Preview</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script>
+        async function fetchCsrfToken() {
+            const response = await fetch("/csrf-token")
+            const token = await response.json()
+            return token["token"];
+        }
+
+        async function fetchImages() {
+            try {
+                const response = await fetch("/api/images/")
+                if (response.status === 200) {
+                    const images = await response.json()
+                    const tableBody = document.querySelector("#image-table tbody")
+                    images.forEach(image => {
+                        const row = document.createElement("tr")
+
+                        const idCell = document.createElement("td")
+                        idCell.textContent = image["id"]
+                        row.appendChild(idCell)
+
+                        const nameCell = document.createElement("td")
+                        nameCell.textContent = image["name"]
+                        row.appendChild(nameCell)
+
+                        const contentTypeCell = document.createElement("td")
+                        contentTypeCell.textContent = image["contentType"]
+                        row.appendChild(contentTypeCell)
+
+                        const resolutionTypeCell = document.createElement("td")
+                        resolutionTypeCell.textContent = image["resolutionType"]
+                        row.appendChild(resolutionTypeCell)
+
+                        const widthCell = document.createElement("td")
+                        widthCell.textContent = image["resolution"][0]
+                        row.appendChild(widthCell)
+
+                        const heightCell = document.createElement("td")
+                        heightCell.textContent = image["resolution"][1]
+                        row.appendChild(heightCell)
+
+                        const sizeCell = document.createElement("td")
+                        sizeCell.textContent = image["size"]
+                        row.appendChild(sizeCell)
+
+                        const imagePreviewCell = document.createElement("td")
+                        const imagePreview = document.createElement("img")
+                        imagePreview.src = `/api/images/image/?id=${image["id"]}`
+                        imagePreview.alt = image["name"]
+                        imagePreview.style.width = "100px"
+                        imagePreviewCell.appendChild(imagePreview)
+                        row.appendChild(imagePreviewCell)
+
+                        const actionsCell = document.createElement("td")
+                        const deleteButton = document.createElement("button")
+                        deleteButton.textContent = "Deletar"
+                        deleteButton.classList.add("btn", "btn-danger")
+                        deleteButton.onclick = function() { deleteImage(image["id"], row) }
+                        actionsCell.classList.add("justify-content-center", "align-content-center")
+                        actionsCell.appendChild(deleteButton)
+                        row.appendChild(actionsCell)
+
+
+
+                        tableBody.appendChild(row)
+                    })
+                } else { alert("Erro ao buscar imagem(ns)") }
+            } catch (error) { console.error("Erro ao buscar imagens", error) }
+        }
+
+        let csrfToken = ""
+
+        async function deleteImage(id, row) {
+            const confirmation = confirm("Tem certeza que deseja excluir? Essa ação é irreversível!")
+            if (confirmation) {
+                try {
+                    if (csrfToken === "") { csrfToken = await fetchCsrfToken() }
+                    const response = await fetch(`../images/image/?id=${id}`, {
+                        method: "DELETE",
+                        headers: { "X-CSRF-TOKEN": csrfToken }
+                    })
+                    if (response.status === 200) {
+                        row.remove()
+                        alert("Imagem deletada com sucesso!")
+                    } else { alert("Erro ao deletar imagem")}
+                } catch (error) { console.error("Erro ao deletar imagem", error) }
+            }
+        }
+        window.onload = fetchImages
+    </script>
+    </body>
+</html>

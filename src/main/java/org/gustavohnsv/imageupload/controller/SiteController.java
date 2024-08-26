@@ -13,4 +13,9 @@ public class SiteController {
         return "Home";
     }
 
+    @GetMapping("/img/")
+    public String images() {
+        return "Images";
+    }
+
 }

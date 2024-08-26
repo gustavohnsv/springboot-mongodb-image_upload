@@ -1,18 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="/css/styles.css">
-    <title>Image Upload</title>
-</head>
-    <body>
-        <form action="/api/images/image/" method="POST" enctype="multipart/form-data">
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link rel="stylesheet" href="/css/styles.css">
+        <title>Image Upload</title>
+    </head>
+    <body class="d-flex justify-content-center text-center p-4">
+        <form action="/api/images/image/" method="POST" enctype="multipart/form-data" id="upload-file">
             <div class="mb-3">
                 <label for="file" class="form-label">Imagem para envio</label>
                 <input class="form-control" type="file" name="file" id="file">
             </div>
-            <button type="submit" class="btn btn-primary">Enviar</button>
+            <button type="submit" class="btn btn-primary w-100">Enviar</button>
+            <input type="hidden" name="_csrf" id="csrf-token">
         </form>
+    <script>
+        async function fetchCsrfToken() {
+            const response = await fetch("/csrf-token")
+            const token = await response.json()
+            return token["token"];
+        }
+        let csrfToken = ""
+        document.getElementById("upload-file").addEventListener('submit', async function(event) {
+            event.preventDefault()
+            const formData = new FormData(this)
+            if (csrfToken === "") {
+                csrfToken = await fetchCsrfToken()
+            }
+            const response = await fetch("/api/images/image/", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRF-TOKEN": csrfToken }
+            })
+            if (response.status === 200) {
+                const result = await response.json()
+                alert("Imagem enviada com sucesso")
+            } else { alert("Erro ao enviar imagem") }
+        })
+    </script>
     </body>
 </html>
