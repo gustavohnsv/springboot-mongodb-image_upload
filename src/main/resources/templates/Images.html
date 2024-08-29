@@ -80,23 +80,30 @@
                         row.appendChild(sizeCell)
 
                         const imagePreviewCell = document.createElement("td")
-                        const imagePreview = document.createElement("img")
-                        imagePreview.src = `/api/images/image/?id=${image["id"]}`
-                        imagePreview.alt = image["name"]
-                        imagePreview.style.width = "100px"
+                        const imagePreview = document.createElement("a")
+                        imagePreview.href = `/api/images/image/?id=${image["id"]}`
+                        imagePreview.target = "_blank"
+                        imagePreview.textContent = "View Preview"
                         imagePreviewCell.appendChild(imagePreview)
                         row.appendChild(imagePreviewCell)
 
                         const actionsCell = document.createElement("td")
+                        actionsCell.classList.add("p-0", "m-0")
                         const deleteButton = document.createElement("button")
                         deleteButton.textContent = "Deletar"
                         deleteButton.classList.add("btn", "btn-danger")
                         deleteButton.onclick = function() { deleteImage(image["id"], row) }
-                        actionsCell.classList.add("justify-content-center", "align-content-center")
+                        deleteButton.classList.add("m-1")
                         actionsCell.appendChild(deleteButton)
+
+                        const downloadButton = document.createElement("button")
+                        downloadButton.textContent = "Baixar"
+                        downloadButton.classList.add("btn", "btn-primary")
+                        downloadButton.onclick = function() { downloadImage(image["id"]) }
+                        downloadButton.classList.add("m-1")
+                        actionsCell.appendChild(downloadButton)
+
                         row.appendChild(actionsCell)
-
-
 
                         tableBody.appendChild(row)
                     })
@@ -122,6 +129,19 @@
                 } catch (error) { console.error("Erro ao deletar imagem", error) }
             }
         }
+
+        async function downloadImage(id) {
+            try {
+                const url = `/api/images/image/download/?id=${id}`
+                const a = document.createElement("a")
+                a.href = url
+                a.download = ''
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+            } catch (error) { console.error("Erro ao baixar imagem", error) }
+        }
+
         window.onload = fetchImages
     </script>
     </body>

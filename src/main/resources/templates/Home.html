@@ -47,7 +47,6 @@
                 headers: { "X-CSRF-TOKEN": csrfToken }
             })
             if (response.status === 200) {
-                const result = await response.json()
                 alert("Imagem enviada com sucesso")
             } else { alert("Erro ao enviar imagem") }
         })
