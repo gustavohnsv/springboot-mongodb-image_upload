@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SiteController {
 
     @GetMapping("/")
-    public String create() {
+    public String home() {
         return "Home";
     }
 

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/images")
@@ -27,11 +28,16 @@ public class ImageController {
     }
 
     @PostMapping("/image/")
-    public ResponseEntity<Message> uploadImage(@RequestParam("file") MultipartFile file) {
-        imageService.saveImage(file);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new Message("success", "Image uploaded successfully"));
+    public ResponseEntity<Message> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("filename") Optional<String> filename) {
+        if (imageService.saveImage(file, filename)) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new Message("success", "Image uploaded successfully"));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new Message("error", "Image upload failed"));
+        }
     }
 
     @NotNull
@@ -80,12 +86,12 @@ public class ImageController {
     }
 
     @GetMapping("/image/")
-    public ResponseEntity<byte[]> getImage(@RequestParam String id) {
+    public ResponseEntity<Object> getImage(@RequestParam String id) {
         Image decompressedImage = imageService.retriveImage(id);
         if (decompressedImage == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(null);
+                    .body(new Message("error", "Image not found"));
         } else {
             return ResponseEntity
                     .status(HttpStatus.OK)

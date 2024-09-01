@@ -1,9 +1,11 @@
 package org.gustavohnsv.imageupload.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.repository.ImageRepository;
 import org.gustavohnsv.imageupload.util.ImageCompressionUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -41,7 +44,7 @@ public class ImageService {
     }
 
     private boolean validateExtension(@NotNull String filename) {
-        if (filename.contains("..")) {
+        if (StringUtils.countMatches(filename, ".") > 1) {
             return false;
         }
         return VALID_EXTENSIONS.contains(filename.substring(filename.lastIndexOf(".") + 1).toLowerCase());
@@ -81,35 +84,55 @@ public class ImageService {
         return calculateSizeRemaining(size, "B");
     }
 
-    public void saveImage(@NotNull MultipartFile file) {
-        if (validateExtension(Objects.requireNonNull(file.getOriginalFilename()))
+    public boolean saveImage(@NotNull MultipartFile file, Optional<String> filename) {
+        String fileName = setFilename(file, filename);
+        if (validateExtension(Objects.requireNonNull(fileName))
                 & validateContentType(Objects.requireNonNull(file.getContentType()))) {
             try (InputStream inputStream = file.getInputStream()) {
                 BufferedImage bufferedImage = ImageIO.read(inputStream);
                 byte[] compressedImageData = ImageCompressionUtil.compress(file.getBytes());
                 imageRepository
                         .save(new Image(
-                                file.getOriginalFilename(),
+                                fileName,
                                 file.getContentType(),
                                 calculateResolutionType(bufferedImage.getHeight()),
                                 new int[]{bufferedImage.getWidth(), bufferedImage.getHeight()},
                                 calculateSize(compressedImageData.length),
                                 compressedImageData)
                                 );
+                return true;
             } catch (IOException e) {
                 System.out.println("Error saving image: " + e.getMessage());
             }
         }
+        return false;
+    }
+
+    @Nullable
+    private static String setFilename(@NotNull MultipartFile file, Optional<String> filename) {
+        String fileName;
+        if (filename.isPresent() && !filename.get().isEmpty()) {
+            String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            fileName = filename.get() + extension;
+        } else {
+            fileName = file.getOriginalFilename();
+        }
+        return fileName;
     }
 
     public Image retriveImage(@NotNull String id) {
         Image image = this.getImage(id);
-        return new Image(image.getName(),
-                image.getContentType(),
-                image.getResolutionType(),
-                image.getResolution(),
-                image.getContentType(),
-                ImageCompressionUtil.decompress(image.getData()));
+        if (image == null) {
+            return null;
+        } else {
+            return new Image(image.getName(),
+                    image.getContentType(),
+                    image.getResolutionType(),
+                    image.getResolution(),
+                    image.getContentType(),
+                    ImageCompressionUtil.decompress(image.getData()));
+        }
     }
 
 }
