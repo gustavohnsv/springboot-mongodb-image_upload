@@ -28,8 +28,8 @@ public class ImageController {
     }
 
     @PostMapping("/image/")
-    public ResponseEntity<Message> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("filename") Optional<String> filename) {
-        if (imageService.saveImage(file, filename)) {
+    public ResponseEntity<Message> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("filename") Optional<String> filename, @RequestParam("resizeFactor") double resizeFactor) {
+        if (imageService.saveImage(file, filename, resizeFactor)) {
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new Message("success", "Image uploaded successfully"));

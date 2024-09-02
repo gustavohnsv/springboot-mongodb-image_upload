@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.repository.ImageRepository;
 import org.gustavohnsv.imageupload.util.ImageCompressionUtil;
+import org.gustavohnsv.imageupload.util.ImageResizeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -84,19 +85,28 @@ public class ImageService {
         return calculateSizeRemaining(size, "B");
     }
 
-    public boolean saveImage(@NotNull MultipartFile file, Optional<String> filename) {
+    public boolean saveImage(@NotNull MultipartFile file, Optional<String> filename, double resizeFactor) {
         String fileName = setFilename(file, filename);
         if (validateExtension(Objects.requireNonNull(fileName))
                 & validateContentType(Objects.requireNonNull(file.getContentType()))) {
             try (InputStream inputStream = file.getInputStream()) {
                 BufferedImage bufferedImage = ImageIO.read(inputStream);
-                byte[] compressedImageData = ImageCompressionUtil.compress(file.getBytes());
+                byte[] compressedImageData = ImageCompressionUtil.compress(
+                        ImageResizeUtil.scaleAndResize(
+                                bufferedImage,
+                                resizeFactor,
+                                getExtension(file.getOriginalFilename())
+                        )
+                );
                 imageRepository
                         .save(new Image(
                                 fileName,
                                 file.getContentType(),
-                                calculateResolutionType(bufferedImage.getHeight()),
-                                new int[]{bufferedImage.getWidth(), bufferedImage.getHeight()},
+                                calculateResolutionType((int) resizeFactor * bufferedImage.getWidth()),
+                                new int[]{
+                                        (int) (resizeFactor * bufferedImage.getWidth()),
+                                        (int) (resizeFactor * bufferedImage.getHeight())
+                                },
                                 calculateSize(compressedImageData.length),
                                 compressedImageData)
                                 );
@@ -108,8 +118,12 @@ public class ImageService {
         return false;
     }
 
+    private String getExtension(String filename) {
+        return StringUtils.substringAfterLast(filename, ".");
+    }
+
     @Nullable
-    private static String setFilename(@NotNull MultipartFile file, Optional<String> filename) {
+    private static String setFilename(@NotNull MultipartFile file, @NotNull Optional<String> filename) {
         String fileName;
         if (filename.isPresent() && !filename.get().isEmpty()) {
             String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
