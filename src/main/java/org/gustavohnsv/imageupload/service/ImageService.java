@@ -14,10 +14,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class ImageService {
@@ -86,7 +83,7 @@ public class ImageService {
     }
 
     public boolean saveImage(@NotNull MultipartFile file, Optional<String> filename, double resizeFactor) {
-        String fileName = setFilename(file, filename);
+        String fileName = filename.orElseGet(file::getOriginalFilename);
         if (validateExtension(Objects.requireNonNull(fileName))
                 & validateContentType(Objects.requireNonNull(file.getContentType()))) {
             try (InputStream inputStream = file.getInputStream()) {
@@ -147,6 +144,18 @@ public class ImageService {
                     image.getContentType(),
                     ImageCompressionUtil.decompress(image.getData()));
         }
+    }
+
+    public void deleteImage(Image image) {
+        imageRepository.delete(image);
+    }
+
+    public long countImages() {
+        return imageRepository.count();
+    }
+
+    public List<Image> findAllImages() {
+        return imageRepository.findAll();
     }
 
 }

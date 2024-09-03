@@ -2,7 +2,6 @@ package org.gustavohnsv.imageupload.controller;
 
 import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.model.Message;
-import org.gustavohnsv.imageupload.repository.ImageRepository;
 import org.gustavohnsv.imageupload.service.ImageService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ByteArrayResource;
@@ -20,15 +19,18 @@ import java.util.Optional;
 public class ImageController {
 
     private final ImageService imageService;
-    private final ImageRepository imageRepository;
 
-    public ImageController(ImageService imageService, ImageRepository imageRepository) {
+    public ImageController(ImageService imageService) {
         this.imageService = imageService;
-        this.imageRepository = imageRepository;
     }
 
     @PostMapping("/image/")
     public ResponseEntity<Message> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("filename") Optional<String> filename, @RequestParam("resizeFactor") double resizeFactor) {
+        if (file.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new Message("error", "File is required"));
+        }
         if (imageService.saveImage(file, filename, resizeFactor)) {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -71,7 +73,7 @@ public class ImageController {
                     .status(HttpStatus.NOT_FOUND)
                     .body(new Message("error", "Image not found"));
         } else {
-            imageRepository.delete(image);
+            imageService.deleteImage(image);
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new Message("success", "Image deleted successfully"));
@@ -82,7 +84,7 @@ public class ImageController {
     public ResponseEntity<List<Image>> getAllImages() {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(imageRepository.findAll());
+                .body(imageService.findAllImages());
     }
 
     @GetMapping("/image/")
@@ -104,7 +106,7 @@ public class ImageController {
     public ResponseEntity<Message> getImageCount() {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new Message("success", imageRepository.count() + " images found"));
+                .body(new Message("success", imageService.countImages() + " images found"));
     }
 
     @RequestMapping(value = "/image/", method = RequestMethod.HEAD)
