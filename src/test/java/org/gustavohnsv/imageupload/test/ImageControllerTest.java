@@ -3,17 +3,13 @@ package org.gustavohnsv.imageupload.test;
 import org.gustavohnsv.imageupload.config.SecurityConfig;
 import org.gustavohnsv.imageupload.controller.ImageController;
 import org.gustavohnsv.imageupload.service.ImageService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,17 +25,8 @@ class ImageControllerTest {
     @MockBean
     private ImageService imageService;
 
-    @InjectMocks
-    private ImageController imageController;
-
     @Autowired
     private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(imageController).build();
-    }
 
     @Test
     @WithMockUser(username = "admin", password = "password", roles = "ADMIN")
