@@ -2,7 +2,7 @@
 
 - Link to access the base API url:
 ```
-    localhost:8080/api/images/
+    localhost:8080/
 ```
 
 - Link to acess the site url:
@@ -38,8 +38,8 @@
 
 ```
     # Site Endpoints
-    GET     localhost:8080/api/
-    GET     localhost:8080/api/img/
+    GET     localhost:8080/
+    GET     localhost:8080/img/
 
     # API Endpoints
     GET     localhost:8080/csrf-token
@@ -90,12 +90,13 @@
     │   │               │   ├── ImageService.java
     │   │               │   └── ResolutionType.java
     │   │               └── util
-    │   │                   └── ImageCompressionUtil.java
+    │   │                   ├── ImageCompressionUtil.java
+    │   │                   └── ImageResizeUtil.java
     │   └── resources
     │       ├── application.properties
     │       ├── static
-    │       │   └── css
-    │       │       └── styles.css
+    │       │   └── img
+    │       │       └── folderback_java.ico
     │       └── templates
     │           ├── Home.html
     │           └── Images.html
@@ -104,5 +105,7 @@
             └── org
                 └── gustavohnsv
                     └── imageupload
-                        └── ImageUploadApplicationTests.java
+                        ├── ImageUploadApplicationTests.java
+                        └── test
+                            └── ImageControllerTest.java
 ```

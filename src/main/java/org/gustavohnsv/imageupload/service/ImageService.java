@@ -87,13 +87,19 @@ public class ImageService {
                 & validateContentType(Objects.requireNonNull(file.getContentType()))) {
             try (InputStream inputStream = file.getInputStream()) {
                 BufferedImage bufferedImage = ImageIO.read(inputStream);
-                byte[] compressedImageData = ImageCompressionUtil.compress(
-                        ImageResizeUtil.scaleAndResize(
-                                bufferedImage,
-                                resizeFactor,
-                                getExtension(file.getOriginalFilename())
-                        )
-                );
+                String fileExtension = getExtension(file.getOriginalFilename());
+                byte[] compressedImageData;
+                if (fileExtension.equals("webp") || fileExtension.equals("svg") || fileExtension.equals("gif")) {
+                    compressedImageData = ImageCompressionUtil.compress(file.getBytes());
+                } else {
+                    compressedImageData = ImageCompressionUtil.compress(
+                            ImageResizeUtil.scaleAndResize(
+                                    bufferedImage,
+                                    resizeFactor,
+                                    fileExtension
+                            )
+                    );
+                }
                 imageRepository
                         .save(new Image(
                                 fileName,
