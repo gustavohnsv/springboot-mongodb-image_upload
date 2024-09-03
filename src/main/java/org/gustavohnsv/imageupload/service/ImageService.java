@@ -1,12 +1,11 @@
 package org.gustavohnsv.imageupload.service;
 
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.repository.ImageRepository;
 import org.gustavohnsv.imageupload.util.ImageCompressionUtil;
 import org.gustavohnsv.imageupload.util.ImageResizeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -83,7 +82,7 @@ public class ImageService {
     }
 
     public boolean saveImage(@NotNull MultipartFile file, Optional<String> filename, double resizeFactor) {
-        String fileName = filename.orElseGet(file::getOriginalFilename);
+        String fileName = setFilename(file, filename);
         if (validateExtension(Objects.requireNonNull(fileName))
                 & validateContentType(Objects.requireNonNull(file.getContentType()))) {
             try (InputStream inputStream = file.getInputStream()) {
@@ -119,7 +118,6 @@ public class ImageService {
         return StringUtils.substringAfterLast(filename, ".");
     }
 
-    @Nullable
     private static String setFilename(@NotNull MultipartFile file, @NotNull Optional<String> filename) {
         String fileName;
         if (filename.isPresent() && !filename.get().isEmpty()) {

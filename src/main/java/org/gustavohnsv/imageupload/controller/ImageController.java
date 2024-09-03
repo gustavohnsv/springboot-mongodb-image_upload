@@ -1,9 +1,9 @@
 package org.gustavohnsv.imageupload.controller;
 
+import jakarta.validation.constraints.NotNull;
 import org.gustavohnsv.imageupload.model.Image;
 import org.gustavohnsv.imageupload.model.Message;
 import org.gustavohnsv.imageupload.service.ImageService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
