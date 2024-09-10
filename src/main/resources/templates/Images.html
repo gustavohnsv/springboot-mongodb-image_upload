@@ -118,7 +118,7 @@
             if (confirmation) {
                 try {
                     if (csrfToken === "") { csrfToken = await fetchCsrfToken() }
-                    const response = await fetch(`../images/image/?id=${id}`, {
+                    const response = await fetch(`/api/images/image/?id=${id}`, {
                         method: "DELETE",
                         headers: { "X-CSRF-TOKEN": csrfToken }
                     })
